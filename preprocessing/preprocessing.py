@@ -60,9 +60,9 @@ def preprocess_data(df):
     # 키워드 기반(TITLE) 필터링
     df = df[~df['title'].str.contains('임대|야놀자|입장권|상품권|포인트|야놀|주차권|쿠폰|구매|비행기|종일권|자유이용권', na=False)]
     # 카테고리 결측값 대체
-    df['category'] = df['category'].fillna("여행/숙박이용권")
+    df['category'] = df['category'].fillna("여행숙박/이용권")
     # 카테고리 기반 필터링
-    df = df[(df['category'] =='여행/숙박/렌트') | (df['category'] =='티켓/교환권') | (df['category']== '여행/숙박이용권')]
+    df = df[(df['category'] =='여행/숙박/렌트') | (df['category'] =='티켓/교환권') | (df['category']== '여행숙박/이용권') | (df['category']== '기타 티켓/쿠폰/이용권')]
     # 모든 값이 결측값인 행 제거
     df.dropna(axis=0, how='all', inplace=True)
     # 결측값 대체
@@ -78,6 +78,7 @@ def preprocess_data(df):
                  "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", 
                  "종로구", "중구", "중랑구"]
     df.loc[df['city_goo'].isin(seoul_goo) & df['city'].isna(), 'city'] = '서울특별시'
+    df = df.reset_index(drop=True)
     return df
 
 # 위치 데이터를 분리하는 함수
