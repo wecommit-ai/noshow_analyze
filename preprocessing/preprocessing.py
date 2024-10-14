@@ -2,6 +2,7 @@ import mysql.connector
 import pandas as pd
 import pickle
 import argparse
+import os
 # SettingWithCopyWarning 제거(경고 메세지)
 pd.options.mode.chained_assignment = None 
 
@@ -66,7 +67,7 @@ def preprocess_data(df):
     # 모든 값이 결측값인 행 제거
     df.dropna(axis=0, how='all', inplace=True)
     # 결측값 대체
-    df[['images', 'description']] = df[['images', 'description']].fillna('정보없음')
+    df['description'] = df['description'].fillna('정보없음')
     # Price 이상치 제거
     df['price'] = pd.to_numeric(df['price'], errors='coerce')
     df = df.query('10000 <= price <= 5000000')
@@ -78,6 +79,16 @@ def preprocess_data(df):
                  "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", 
                  "종로구", "중구", "중랑구"]
     df.loc[df['city_goo'].isin(seoul_goo) & df['city'].isna(), 'city'] = '서울특별시'
+    # 중고나라 images 링크 짤리는 현상 처리
+    df['images'] = df['images'].apply(lambda x: x.split(',') if isinstance(x, str) else x)
+    df['images'] = df.apply(
+        lambda row: [
+            f"https://img2.joongna.com{img.strip()}" if img.strip().startswith('/') else img.strip() 
+            for img in row['images']
+        ] 
+        if row['platform'] == '중고나라' else row['images'], 
+        axis=1
+    )
     df = df.reset_index(drop=True)
     return df
 
@@ -101,10 +112,18 @@ def split_location(location):
     return (si, goo, dong)
 
 
-# 파일로 저장 (일단은 pickle로)
-def save_to_pickle(df, filename='processed_data.pkl'):
+def save_to_pickle(df, base_filename='processed_data.pkl'):
+    filename = base_filename
+    counter = 1
+
+    while os.path.exists(filename):
+        filename = f'processed_data_{counter}.pkl'
+        counter += 1
+
     with open(filename, 'wb') as f:
         pickle.dump(df, f)
+    
+    print(f"Data saved as {filename}")
 
 # 메인 파이프라인
 def main(mode, file_path=None):
