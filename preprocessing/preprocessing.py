@@ -58,6 +58,8 @@ def preprocess_data(df):
     df = df.copy()
     # "original_link" 기준 중복 행 제거
     df = df.drop_duplicates(subset=['original_link']).reset_index(drop=True)
+    # "title, description, status" 기준 중복 행 제거
+    df = df.drop_duplicates(subset=['title','description','status']).reset_index(drop=True)
     # 키워드 기반(TITLE) 필터링
     df = df[~df['title'].str.contains('임대|야놀자|입장권|상품권|포인트|야놀|주차권|쿠폰|구매|비행기|종일권|자유이용권', na=False)]
     # 카테고리 결측값 대체
